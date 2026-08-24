@@ -4,17 +4,17 @@ const cors = require('cors');
 const { Resend } = require('resend');
 
 const app = express();
-const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: ['https://smartshelfs.netlify.app', 'http://localhost:3000'],
+  origin: '*', // Allows requests from Netlify and local development
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-  credentials: true
+  allowedHeaders: ['Content-Type']
 }));
-app.options('*', cors());
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // In-Memory Lead Store (Replace with Supabase/MongoDB connection if persistent storage is needed)
 const leadsDatabase = [];
