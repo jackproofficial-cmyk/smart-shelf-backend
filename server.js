@@ -70,9 +70,14 @@ app.post('/api/reserve', async (req, res) => {
   console.log('New Lead Stored:', lead);
 
   // Send Non-Binding Email via Resend
+  console.log('RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
   try {
-    if (loiIntent && process.env.RESEND_API_KEY) {
-      await resend.emails.send({
+    if (!loiIntent) {
+      console.log('Skipping email: loiIntent is false');
+    } else if (!process.env.RESEND_API_KEY) {
+      console.log('Skipping email: RESEND_API_KEY is missing on this server');
+    } else {
+      const result = await resend.emails.send({
         from: 'Smart Shelf <onboarding@resend.dev>',
         to: email,
         subject: 'Confirm your Smart Shelf Beta Reservation Intent',
@@ -90,6 +95,7 @@ app.post('/api/reserve', async (req, res) => {
           </div>
         `
       });
+      console.log('Resend API response:', JSON.stringify(result));
     }
 
     return res.status(200).json({
