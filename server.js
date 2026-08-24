@@ -5,21 +5,18 @@ const { Resend } = require('resend');
 
 const app = express();
 
+// 1. MUST BE FIRST: Enable CORS for all routes and handle preflights automatically
+app.use(cors());
 
-// Middleware
+// 2. Parse JSON payloads
 app.use(express.json());
-app.use(cors({
-  origin: '*', // Allows requests from Netlify and local development
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// In-Memory Lead Store (Replace with Supabase/MongoDB connection if persistent storage is needed)
+// In-Memory Lead Store
 const leadsDatabase = [];
 
-// Health check endpoint for hosting service
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date() });
 });
@@ -49,11 +46,11 @@ app.post('/api/reserve', async (req, res) => {
   leadsDatabase.push(lead);
   console.log('New Lead Stored:', lead);
 
-  // Send Non-Binding Email if user checked the Beta LOI intent option
+  // Send Non-Binding Email via Resend
   try {
     if (loiIntent && process.env.RESEND_API_KEY) {
       await resend.emails.send({
-        from: 'Smart Shelf <onboarding@resend.dev>', // Replace with your domain once verified
+        from: 'Smart Shelf <onboarding@resend.dev>',
         to: email,
         subject: 'Confirm your Smart Shelf Beta Reservation Intent',
         html: `
@@ -79,7 +76,6 @@ app.post('/api/reserve', async (req, res) => {
     });
   } catch (emailError) {
     console.error('Email Dispatch Failed:', emailError);
-    // Still return success to frontend if lead was saved
     return res.status(200).json({
       success: true,
       message: 'Reservation recorded, but verification email failed to dispatch.',
