@@ -9,9 +9,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  methods: ['GET', 'POST']
+  origin: ['https://smartshelfs.netlify.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true
 }));
+app.options('*', cors());
 
 // In-Memory Lead Store (Replace with Supabase/MongoDB connection if persistent storage is needed)
 const leadsDatabase = [];
